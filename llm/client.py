@@ -62,23 +62,19 @@ class LocalLLMClient:
                 user_msg = m.get("content", "").lower()
                 break
 
-        if "average consumption yesterday" in user_msg:
-            return '{"sql": "SELECT AVG(consumption) AS avg_consumption FROM consumption WHERE timestamp >= CURRENT_DATE - INTERVAL \'1 day\' AND timestamp < CURRENT_DATE;", "tables_used": ["consumption"]}'
+        if "dtr" in user_msg or "struc_code" in user_msg or "mapping" in user_msg:
+            return '{"sql": "SELECT COUNT(DISTINCT CONS_NO) AS total_consumers FROM epdatalake.consumer_mapping WHERE DTR_STRUC_CODE IS NOT NULL;", "tables_used": ["epdatalake.consumer_mapping"]}'
+        elif "lt_consumer" in user_msg or "scno" in user_msg:
+            return '{"sql": "SELECT COUNT(*) AS total_lt_consumers FROM epdatalake.lt_consumer_master;", "tables_used": ["epdatalake.lt_consumer_master"]}'
+        elif "average consumption yesterday" in user_msg:
+            return '{"sql": "SELECT AVG(vah_imp) AS avg_consumption FROM epdatalake.t_nw_blp WHERE ts >= CURRENT_DATE - INTERVAL \'1 day\' AND ts < CURRENT_DATE;", "tables_used": ["epdatalake.t_nw_blp"]}'
         elif "highest consumption last week" in user_msg:
-            return '{"sql": "SELECT consumer_id, SUM(consumption) AS total_consumption FROM consumption WHERE timestamp >= CURRENT_DATE - INTERVAL \'7 days\' AND timestamp < CURRENT_DATE GROUP BY consumer_id ORDER BY total_consumption DESC LIMIT 5;", "tables_used": ["consumption"]}'
-        elif "67002820" in user_msg and "compare" in user_msg:
-            return '{"sql": "SELECT timestamp, actual_consumption, predicted_consumption, difference, percentage_exceeded FROM consumer_predictions WHERE consumer_id = \'67002820\' ORDER BY timestamp DESC LIMIT 20;", "tables_used": ["consumer_predictions"]}'
-        elif "exceeded" in user_msg and "10%" in user_msg:
-            return '{"sql": "SELECT consumer_id, consumer_name, timestamp, actual_consumption, predicted_consumption, percentage_exceeded FROM consumer_predictions WHERE percentage_exceeded > 10.0 ORDER BY percentage_exceeded DESC LIMIT 20;", "tables_used": ["consumer_predictions"]}'
-        elif "average consumption by cluster" in user_msg:
-            return '{"sql": "SELECT cluster_id, cluster_name, cluster_avg_consumption FROM consumer_cluster_summary ORDER BY cluster_avg_consumption DESC;", "tables_used": ["consumer_cluster_summary"]}'
-        elif "july" in user_msg and "top 20" in user_msg:
-            return '{"sql": "SELECT consumer_id, consumer_name, monthly_total_consumption FROM consumer_monthly_summary WHERE year_month = \'2026-07\' ORDER BY monthly_total_consumption DESC LIMIT 20;", "tables_used": ["consumer_monthly_summary"]}'
+            return '{"sql": "SELECT msn, SUM(vah_imp) AS total_consumption FROM epdatalake.t_nw_blp WHERE ts >= CURRENT_DATE - INTERVAL \'7 days\' AND ts < CURRENT_DATE GROUP BY msn ORDER BY total_consumption DESC LIMIT 5;", "tables_used": ["epdatalake.t_nw_blp"]}'
         elif "drop" in user_msg or "delete" in user_msg or "ignore" in user_msg:
-            return '{"sql": "SELECT consumer_id, name FROM consumers LIMIT 10;", "tables_used": ["consumers"]}'
+            return '{"sql": "SELECT CONS_NO FROM epdatalake.consumer_mapping LIMIT 10;", "tables_used": ["epdatalake.consumer_mapping"]}'
         
-        # Default safe select
-        return '{"sql": "SELECT consumer_id, total_consumption FROM daily_summary ORDER BY total_consumption DESC LIMIT 10;", "tables_used": ["daily_summary"]}'
+        # Default safe select on data lake schema
+        return '{"sql": "SELECT COUNT(DISTINCT CONS_NO) AS total_consumers FROM epdatalake.consumer_mapping;", "tables_used": ["epdatalake.consumer_mapping"]}'
 
 
 local_llm_client = LocalLLMClient()
