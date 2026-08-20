@@ -8,6 +8,7 @@ A fully self-hosted Natural Language → PostgreSQL SQL agent powered by local C
 
 - **100% Self-Hosted & Local**: No external LLM APIs (No OpenAI, Anthropic, or cloud API dependencies).
 - **CPU Optimized**: Runs `Qwen2.5-Coder-7B-Instruct-GGUF:Q4_K_M` locally via `llama-server` on standard CPU hardware (12-16 GB RAM).
+- **ClickHouse / PostgreSQL Compatible**: Built to query ClickHouse data lake (`epdatalake` schema) via PostgreSQL wire protocol (`psycopg`).
 - **8-Layer Security Boundary**:
   1. Input validation & category classification
   2. AST SQL parsing (`sqlglot`) & single-statement enforcement
@@ -15,7 +16,7 @@ A fully self-hosted Natural Language → PostgreSQL SQL agent powered by local C
   4. Table allowlist (`ALLOWED_TABLES`) & column allowlists
   5. Sensitive column blocking (`password`, `token`, `credentials`, etc.)
   6. EXPLAIN cost evaluation (`MAX_QUERY_COST=10000.0`)
-  7. Dedicated PostgreSQL `llm_readonly` user with SELECT-only grants
+  7. Dedicated read-only database user with SELECT-only permissions
   8. Configurable statement timeout (`SQL_STATEMENT_TIMEOUT_MS=5000`) and read-only transactions.
 - **LangGraph Agent Workflow**: Explicit node architecture (`classify_question` → `discover_schema` → `retrieve_schema` → `generate_sql` → `validate_sql` → `execute_sql` / `repair_sql` → `generate_answer`).
 - **Semantic Catalog & Retrieval**: Concise schema retriever dynamically selecting relevant schemas and explicit table relationships to prevent context bloat.
