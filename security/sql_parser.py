@@ -49,7 +49,11 @@ class SQLParsedInfo:
             # Tables
             for table in self.expression.find_all(exp.Table):
                 if table.name:
-                    self.tables.add(table.name.lower())
+                    table_name = table.name.lower()
+                    db_name = table.db.lower() if table.db else ""
+                    self.tables.add(table_name)
+                    if db_name:
+                        self.tables.add(f"{db_name}.{table_name}")
 
             # Joins
             joins = list(self.expression.find_all(exp.Join))

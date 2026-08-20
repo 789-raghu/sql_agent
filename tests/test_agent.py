@@ -5,11 +5,11 @@ from agent.graph import sql_agent_graph
 
 
 @pytest.mark.asyncio
-async def test_agent_average_consumption_yesterday():
-    state = SQLAgentState(user_question="What was the average consumption yesterday?")
+async def test_agent_dtr_consumer_mapping():
+    state = SQLAgentState(user_question="What is the total number of consumers mapped to DTR structure codes?")
     result_dict = await sql_agent_graph.ainvoke(state.model_dump())
     res = SQLAgentState(**result_dict)
-    assert res.status in ("success", "processing")
+    assert res.relevant_tables != []
     assert res.final_answer != ""
 
 
