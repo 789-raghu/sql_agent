@@ -1,0 +1,11 @@
+from config.settings import settings
+
+MAX_RESULT_ROWS: int = settings.MAX_RESULT_ROWS
+MAX_SQL_LENGTH: int = settings.MAX_SQL_LENGTH
+MAX_JOINS: int = settings.MAX_JOINS
+MAX_RETRIES: int = settings.MAX_SQL_RETRIES
+QUERY_TIMEOUT_MS: int = settings.SQL_STATEMENT_TIMEOUT_MS
+
+MAX_HOURLY_DATE_RANGE_DAYS: int = 30
+MAX_DAILY_DATE_RANGE_DAYS: int = 365
+MAX_MONTHLY_DATE_RANGE_DAYS: int = 3650

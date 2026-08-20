@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: electricity
+      POSTGRES_PASSWORD: postgres_admin_pass
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ./scripts/setup_database.sql:/docker-entrypoint-initdb.d/10-setup.sql
+      - ./database/permissions.sql:/docker-entrypoint-initdb.d/20-permissions.sql
+      - ./database/views.sql:/docker-entrypoint-initdb.d/30-views.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d electricity"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  llm:
+    image: ghcr.io/ggerganov/llama.cpp:full
+    container_name: llama_server
+    command: >
+      --hf Qwen/Qwen2.5-Coder-7B-Instruct-GGUF:Q4_K_M
+      --host 0.0.0.0
+      --port 8080
+      -c 8192
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./models:/models
+
+  backend:
+    build: .
+    container_name: sql_agent_backend
+    ports:
+      - "8000:8000"
+    environment:
+      LLM_BASE_URL: http://llm:8080/v1
+      LLM_MODEL: Qwen2.5-Coder-7B-Instruct
+      LLM_TEMPERATURE: 0.0
+      LLM_MAX_TOKENS: 512
+      LLM_CONTEXT_SIZE: 8192
+      DATABASE_URL: postgresql://llm_readonly:readonly_secure_pass@postgres:5432/electricity
+      SQL_STATEMENT_TIMEOUT_MS: 5000
+      MAX_RESULT_ROWS: 1000
+      MAX_SQL_LENGTH: 5000
+      MAX_JOINS: 5
+      MAX_SQL_RETRIES: 2
+      MAX_CONCURRENT_LLM_REQUESTS: 1
+    depends_on:
+      postgres:
+        condition: service_healthy
+      llm:
+        condition: service_started
