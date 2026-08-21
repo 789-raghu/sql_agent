@@ -51,8 +51,11 @@ async def generate_answer_node(state: SQLAgentState) -> SQLAgentState:
             answer = f"Found {len(state.execution_result)} consumers. Top consumer: {first_row.get('consumer_name', first_row['consumer_id'])} with {round(float(first_row['total_consumption']), 2)} kWh."
         elif "cluster_name" in first_row:
             answer = f"Cluster consumption summary: Top cluster is {first_row['cluster_name']} with average consumption of {round(float(first_row.get('cluster_avg_consumption', 0)), 2)} kWh."
+        elif "total_consumers" in first_row:
+            answer = f"Total consumers count: {first_row['total_consumers']}."
         else:
-            answer = f"Query returned {len(state.execution_result)} records."
+            formatted_rows = [", ".join(f"{k}: {v}" for k, v in row.items()) for row in state.execution_result[:5]]
+            answer = f"Found {len(state.execution_result)} record(s):\n" + "\n".join(formatted_rows)
 
     state.final_answer = answer
     state.status = "success"
