@@ -33,16 +33,18 @@ class SchemaRetriever:
             selected_tables.update(["consumption", "daily_summary", "consumers", "consumer_monthly_summary"])
 
         # Data Lake Schema Keywords (epdatalake schema)
-        if any(w in q_lower for w in ["dtr", "transformer", "struc_code", "structure code"]):
+        if any(w in q_lower for w in ["dtr", "transformer", "struc_code", "structure code", "struc"]):
             selected_tables.update(["epdatalake.dtr_master", "epdatalake.consumer_mapping"])
         if any(w in q_lower for w in ["amr", "blp", "fdr_dtr", "t_nw_blp"]):
             selected_tables.update(["epdatalake.fdr_dtr_newcharge", "epdatalake.t_nw_blp", "epdatalake.consumer_mapping"])
-        if any(w in q_lower for w in ["smart meter", "smart_meter", "ukscno", "mtr_sno", "1-phase", "3-phase", "single phase", "three phase", "t_blp_sp", "t_blp_tp"]):
+        if any(w in q_lower for w in ["smart", "smart meter", "smart metered", "smart_meter", "ukscno", "mtr_sno", "msn", "meter", "meters"]):
+            selected_tables.update(["epdatalake.lt_consumer_master", "epdatalake.smart_meters_install_m"])
+        if any(w in q_lower for w in ["1-phase", "3-phase", "single phase", "three phase", "t_blp_sp", "t_blp_tp"]):
             selected_tables.update(["epdatalake.lt_consumer_master", "epdatalake.smart_meters_install_m", "epdatalake.t_blp_sp", "epdatalake.t_blp_tp"])
-        if any(w in q_lower for w in ["lt consumer", "scno", "non-smart", "lt_meter_data", "present reading", "prev reading"]):
-            selected_tables.update(["epdatalake.lt_consumer_master", "epdatalake.lt_meter_data", "epdatalake.consumer_mapping"])
-        if any(w in q_lower for w in ["ht consumer", "ht", "high tension", "contract demand", "supply voltage", "ht_consumer_master"]):
-            selected_tables.update(["epdatalake.ht_consumer_master"])
+        if any(w in q_lower for w in ["consumer", "consumers", "domestic", "commercial", "lt consumer", "scno", "non-smart", "lt_meter_data", "present reading", "prev reading"]):
+            selected_tables.update(["epdatalake.lt_consumer_master", "epdatalake.consumer_mapping"])
+        if any(w in q_lower for w in ["ht consumer", "ht", "high tension", "contract demand", "supply voltage", "ht_consumer_master", "ht_amr"]):
+            selected_tables.update(["epdatalake.ht_consumer_master", "epdatalake.ht_amr_data"])
         if any(w in q_lower for w in ["bill", "billing", "billed amount", "invoice"]):
             selected_tables.update(["epdatalake.lt_billing_data", "epdatalake.htbpbillprocess_t", "epdatalake.oracle.smart_meters_billdata"])
         if any(w in q_lower for w in ["category", "cat_code", "tariff"]):
@@ -50,7 +52,7 @@ class SchemaRetriever:
 
         # Default fallback if no specific keywords matched
         if not selected_tables:
-            selected_tables.update(["consumers", "consumption", "daily_summary"])
+            selected_tables.update(["epdatalake.lt_consumer_master", "epdatalake.consumer_mapping", "epdatalake.smart_meters_install_m", "epdatalake.ht_amr_data"])
 
         # Gather schema strings for selected tables
         schema_parts = []
