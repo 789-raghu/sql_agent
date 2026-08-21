@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 set -e
 
-# Cached GGUF model path (downloaded via huggingface-hub)
-CACHED_MODEL="/home/ubuntu/.cache/huggingface/hub/models--Qwen--Qwen2.5-Coder-7B-Instruct-GGUF/snapshots/13fb94bfda8c8cf22497dc57b78f391a9acb426a/qwen2.5-coder-7b-instruct-q4_k_m-00001-of-00002.gguf"
-# Fallback download path
-MODEL_DIR="models"
+MODEL_DIR="$(cd "$(dirname "$0")/.." && pwd)/models"
 MODEL_FILE="${MODEL_DIR}/qwen2.5-coder-7b-instruct-q4_k_m.gguf"
-MODEL_HF="Qwen/Qwen2.5-Coder-7B-Instruct-GGUF:Q4_K_M"
+MODEL_HF="Qwen/Qwen2.5-Coder-7B-Instruct-GGUF"
+MODEL_PATTERN="qwen2.5-coder-7b-instruct-q4_k_m-00001-of-00002.gguf"
+
+# Dynamically find cached HuggingFace model
+HF_CACHE="${HOME}/.cache/huggingface/hub"
+CACHED_MODEL=$(find "${HF_CACHE}" -name "${MODEL_PATTERN}" 2>/dev/null | head -1)
 
 SERVER_BIN=""
 for candidate in \
@@ -49,9 +51,22 @@ elif "$(dirname "$0")/../.venv/bin/python3" -c "import llama_cpp" 2>/dev/null ||
     else
         PYTHON="python3"
     fi
+
     if [ -z "$MODEL_TO_USE" ]; then
-        MODEL_TO_USE="$CACHED_MODEL"
+        echo "No model GGUF found locally. Auto-downloading Qwen2.5-Coder-7B-Instruct-GGUF from Hugging Face..."
+        MODEL_TO_USE=$($PYTHON -c "
+from huggingface_hub import hf_hub_download
+import sys
+try:
+    path = hf_hub_download(repo_id='Qwen/Qwen2.5-Coder-7B-Instruct-GGUF', filename='qwen2.5-coder-7b-instruct-q4_k_m-00001-of-00002.gguf')
+    # also download part 2
+    hf_hub_download(repo_id='Qwen/Qwen2.5-Coder-7B-Instruct-GGUF', filename='qwen2.5-coder-7b-instruct-q4_k_m-00002-of-00002.gguf')
+    print(path)
+except Exception as e:
+    sys.exit(1)
+")
     fi
+
     echo "Python: $PYTHON"
     echo "Model: $MODEL_TO_USE"
     $PYTHON -m llama_cpp.server \
