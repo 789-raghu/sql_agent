@@ -62,12 +62,12 @@ class LocalLLMClient:
                 user_msg = m.get("content", "").lower()
                 break
 
-        if "domestic" in user_msg:
-            return '{"sql": "SELECT ID, SCNO, NAME, CATEGORY FROM epdatalake.lt_consumer_master WHERE upper(CATEGORY) LIKE \'%DOMESTIC%\' LIMIT 3;", "tables_used": ["epdatalake.lt_consumer_master"]}'
-        elif "smart meter" in user_msg or "smart metered" in user_msg:
+        if "smart meter" in user_msg or "smart metered" in user_msg or "smart_meters" in user_msg:
             return '{"sql": "SELECT MTR_SNO, MTR_TYPE, UKSCNO FROM epdatalake.smart_meters_install_m LIMIT 1;", "tables_used": ["epdatalake.smart_meters_install_m"]}'
         elif "msn" in user_msg or "meter" in user_msg:
             return '{"sql": "SELECT MTR_SNO FROM epdatalake.smart_meters_install_m LIMIT 3;", "tables_used": ["epdatalake.smart_meters_install_m"]}'
+        elif "domestic" in user_msg or "consumer" in user_msg:
+            return '{"sql": "SELECT ID, SCNO, NAME, CATEGORY FROM epdatalake.lt_consumer_master LIMIT 3;", "tables_used": ["epdatalake.lt_consumer_master"]}'
         elif "ht_amr" in user_msg or "amr" in user_msg:
             return '{"sql": "SELECT msn, ts, vah_imp FROM epdatalake.ht_amr_data LIMIT 5;", "tables_used": ["epdatalake.ht_amr_data"]}'
         elif "dtr" in user_msg or "struc_code" in user_msg or "mapping" in user_msg:
