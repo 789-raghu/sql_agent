@@ -19,26 +19,13 @@ services:
       timeout: 5s
       retries: 5
 
-  llm:
-    image: ghcr.io/ggerganov/llama.cpp:full
-    container_name: llama_server
-    command: >
-      --hf Qwen/Qwen2.5-Coder-7B-Instruct-GGUF:Q4_K_M
-      --host 0.0.0.0
-      --port 8080
-      -c 8192
-    ports:
-      - "127.0.0.1:8080:8080"
-    volumes:
-      - ./models:/models
-
   backend:
     build: .
     container_name: sql_agent_backend
     ports:
       - "8000:8000"
     environment:
-      LLM_BASE_URL: http://llm:8080/v1
+      LLM_BASE_URL: http://host.docker.internal:8080/v1
       LLM_MODEL: Qwen2.5-Coder-7B-Instruct
       LLM_TEMPERATURE: 0.0
       LLM_MAX_TOKENS: 512
@@ -53,5 +40,4 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      llm:
-        condition: service_started
+

@@ -49,14 +49,18 @@ sudo -u postgres psql -d electricity -f database/permissions.sql
 sudo -u postgres psql -d electricity -f database/views.sql
 ```
 
-### 4. Start Local LLM Server
+### 4. Start Local LLM Server (Standalone Repository)
+The LLM inference service is decoupled into the `/home/ubuntu/llama_llm_server` repository.
+
 ```bash
-./scripts/start_llm.sh
+cd /home/ubuntu/llama_llm_server
+./start_server.sh
 ```
-The server will run at `http://127.0.0.1:8080/v1`.
+The server runs at `http://127.0.0.1:8080/v1`.
 
 ### 5. Start Backend Server
 ```bash
+cd /home/ubuntu/sql_agent
 ./scripts/start_backend.sh
 ```
 FastAPI server starts at `http://127.0.0.1:8000`.
