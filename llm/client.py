@@ -62,23 +62,35 @@ class LocalLLMClient:
                 user_msg = m.get("content", "").lower()
                 break
 
-        if "smart meter" in user_msg or "smart metered" in user_msg or "smart_meters" in user_msg:
+        is_smart = any(w in user_msg for w in ["smart meter", "smart metered", "smart_meters", "smart"])
+        is_consumption = any(w in user_msg for w in ["consumption", "reading", "energy", "usage", "kwh", "kvah", "load"])
+        is_dtr = any(w in user_msg for w in ["dtr", "transformer", "struc_code", "mapping"])
+        is_ht = any(w in user_msg for w in ["ht", "high tension", "ht_amr", "amr"])
+
+        # Smart meter + consumption → join load profile table
+        if is_smart and is_consumption:
+            return '{"sql": "SELECT s.MTR_SNO, s.MTR_TYPE, b.ts, b.vah_imp FROM epdatalake.smart_meters_install_m AS s INNER JOIN epdatalake.t_blp_sp AS b ON s.MTR_SNO = b.msn LIMIT 5;", "tables_used": ["epdatalake.smart_meters_install_m", "epdatalake.t_blp_sp"]}'
+        elif is_smart:
             return '{"sql": "SELECT MTR_SNO, MTR_TYPE, UKSCNO FROM epdatalake.smart_meters_install_m LIMIT 1;", "tables_used": ["epdatalake.smart_meters_install_m"]}'
-        elif "msn" in user_msg or "meter" in user_msg:
+        elif is_ht and is_consumption:
+            return '{"sql": "SELECT msn, ts, vah_imp, kwh_imp FROM epdatalake.ht_amr_data LIMIT 5;", "tables_used": ["epdatalake.ht_amr_data"]}'
+        elif is_dtr and is_consumption:
+            return '{"sql": "SELECT msn, ts, vah_imp FROM epdatalake.t_nw_blp LIMIT 5;", "tables_used": ["epdatalake.t_nw_blp"]}'
+        elif is_consumption:
+            return '{"sql": "SELECT msn, ts, vah_imp FROM epdatalake.t_nw_blp ORDER BY ts DESC LIMIT 5;", "tables_used": ["epdatalake.t_nw_blp"]}'
+        elif any(w in user_msg for w in ["msn", "meter"]):
             return '{"sql": "SELECT MTR_SNO FROM epdatalake.smart_meters_install_m LIMIT 3;", "tables_used": ["epdatalake.smart_meters_install_m"]}'
-        elif "domestic" in user_msg or "consumer" in user_msg:
+        elif any(w in user_msg for w in ["domestic", "consumer", "consumers"]):
             return '{"sql": "SELECT ID, SCNO, NAME, CATEGORY FROM epdatalake.lt_consumer_master LIMIT 3;", "tables_used": ["epdatalake.lt_consumer_master"]}'
-        elif "ht_amr" in user_msg or "amr" in user_msg:
+        elif is_ht:
             return '{"sql": "SELECT msn, ts, vah_imp FROM epdatalake.ht_amr_data LIMIT 5;", "tables_used": ["epdatalake.ht_amr_data"]}'
-        elif "dtr" in user_msg or "struc_code" in user_msg or "mapping" in user_msg:
+        elif is_dtr:
             return '{"sql": "SELECT COUNT(DISTINCT CONS_NO) AS total_consumers FROM epdatalake.consumer_mapping WHERE DTR_STRUC_CODE IS NOT NULL;", "tables_used": ["epdatalake.consumer_mapping"]}'
-        elif "lt_consumer" in user_msg or "scno" in user_msg:
+        elif any(w in user_msg for w in ["lt_consumer", "scno"]):
             return '{"sql": "SELECT COUNT(*) AS total_lt_consumers FROM epdatalake.lt_consumer_master;", "tables_used": ["epdatalake.lt_consumer_master"]}'
-        elif "average" in user_msg or "consumption" in user_msg:
-            return '{"sql": "SELECT AVG(vah_imp) AS avg_consumption FROM epdatalake.t_nw_blp WHERE ts >= today() - INTERVAL 1 DAY;", "tables_used": ["epdatalake.t_nw_blp"]}'
-        elif "drop" in user_msg or "delete" in user_msg or "ignore" in user_msg:
+        elif any(w in user_msg for w in ["drop", "delete", "ignore"]):
             return '{"sql": "SELECT CONS_NO FROM epdatalake.consumer_mapping LIMIT 10;", "tables_used": ["epdatalake.consumer_mapping"]}'
-        
+
         # Default safe select on data lake schema
         return '{"sql": "SELECT CONS_NO, DTR_STRUC_CODE FROM epdatalake.consumer_mapping LIMIT 5;", "tables_used": ["epdatalake.consumer_mapping"]}'
 
