@@ -73,8 +73,8 @@ except Exception as e:
         --model "$MODEL_TO_USE" \
         --host 127.0.0.1 \
         --port 8080 \
-        --n_ctx 8192 \
-        --n_threads $(nproc)
+        --n_ctx 2048 \
+        --n_threads 4
 elif [ -n "$SERVER_BIN" ]; then
     echo "Downloading model from HuggingFace: $MODEL_HF"
     mkdir -p "$MODEL_DIR"
