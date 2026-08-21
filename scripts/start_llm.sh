@@ -40,13 +40,21 @@ if [ -n "$SERVER_BIN" ] && [ -n "$MODEL_TO_USE" ]; then
         --port 8080 \
         -c 8192 \
         -t $(nproc)
-elif python3 -c "import llama_cpp" 2>/dev/null; then
+elif "$(dirname "$0")/../.venv/bin/python3" -c "import llama_cpp" 2>/dev/null || python3 -c "import llama_cpp" 2>/dev/null; then
     echo "llama-server binary not found. Falling back to llama-cpp-python server."
+    # Prefer venv Python
+    VENV_DIR="$(cd "$(dirname "$0")/.." && pwd)/.venv"
+    if [ -f "$VENV_DIR/bin/python3" ]; then
+        PYTHON="$VENV_DIR/bin/python3"
+    else
+        PYTHON="python3"
+    fi
     if [ -z "$MODEL_TO_USE" ]; then
         MODEL_TO_USE="$CACHED_MODEL"
     fi
+    echo "Python: $PYTHON"
     echo "Model: $MODEL_TO_USE"
-    python3 -m llama_cpp.server \
+    $PYTHON -m llama_cpp.server \
         --model "$MODEL_TO_USE" \
         --host 127.0.0.1 \
         --port 8080 \
