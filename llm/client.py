@@ -62,19 +62,25 @@ class LocalLLMClient:
                 user_msg = m.get("content", "").lower()
                 break
 
-        if "dtr" in user_msg or "struc_code" in user_msg or "mapping" in user_msg:
+        if "domestic" in user_msg:
+            return '{"sql": "SELECT ID, SCNO, NAME, CATEGORY FROM epdatalake.lt_consumer_master WHERE upper(CATEGORY) LIKE \'%DOMESTIC%\' LIMIT 3;", "tables_used": ["epdatalake.lt_consumer_master"]}'
+        elif "smart meter" in user_msg or "smart metered" in user_msg:
+            return '{"sql": "SELECT MTR_SNO, MTR_TYPE, UKSCNO FROM epdatalake.smart_meters_install_m LIMIT 1;", "tables_used": ["epdatalake.smart_meters_install_m"]}'
+        elif "msn" in user_msg or "meter" in user_msg:
+            return '{"sql": "SELECT MTR_SNO FROM epdatalake.smart_meters_install_m LIMIT 3;", "tables_used": ["epdatalake.smart_meters_install_m"]}'
+        elif "ht_amr" in user_msg or "amr" in user_msg:
+            return '{"sql": "SELECT msn, ts, vah_imp FROM epdatalake.ht_amr_data LIMIT 5;", "tables_used": ["epdatalake.ht_amr_data"]}'
+        elif "dtr" in user_msg or "struc_code" in user_msg or "mapping" in user_msg:
             return '{"sql": "SELECT COUNT(DISTINCT CONS_NO) AS total_consumers FROM epdatalake.consumer_mapping WHERE DTR_STRUC_CODE IS NOT NULL;", "tables_used": ["epdatalake.consumer_mapping"]}'
         elif "lt_consumer" in user_msg or "scno" in user_msg:
             return '{"sql": "SELECT COUNT(*) AS total_lt_consumers FROM epdatalake.lt_consumer_master;", "tables_used": ["epdatalake.lt_consumer_master"]}'
-        elif "average consumption yesterday" in user_msg:
-            return '{"sql": "SELECT AVG(vah_imp) AS avg_consumption FROM epdatalake.t_nw_blp WHERE ts >= CURRENT_DATE - INTERVAL \'1 day\' AND ts < CURRENT_DATE;", "tables_used": ["epdatalake.t_nw_blp"]}'
-        elif "highest consumption last week" in user_msg:
-            return '{"sql": "SELECT msn, SUM(vah_imp) AS total_consumption FROM epdatalake.t_nw_blp WHERE ts >= CURRENT_DATE - INTERVAL \'7 days\' AND ts < CURRENT_DATE GROUP BY msn ORDER BY total_consumption DESC LIMIT 5;", "tables_used": ["epdatalake.t_nw_blp"]}'
+        elif "average" in user_msg or "consumption" in user_msg:
+            return '{"sql": "SELECT AVG(vah_imp) AS avg_consumption FROM epdatalake.t_nw_blp WHERE ts >= today() - INTERVAL 1 DAY;", "tables_used": ["epdatalake.t_nw_blp"]}'
         elif "drop" in user_msg or "delete" in user_msg or "ignore" in user_msg:
             return '{"sql": "SELECT CONS_NO FROM epdatalake.consumer_mapping LIMIT 10;", "tables_used": ["epdatalake.consumer_mapping"]}'
         
         # Default safe select on data lake schema
-        return '{"sql": "SELECT COUNT(DISTINCT CONS_NO) AS total_consumers FROM epdatalake.consumer_mapping;", "tables_used": ["epdatalake.consumer_mapping"]}'
+        return '{"sql": "SELECT CONS_NO, DTR_STRUC_CODE FROM epdatalake.consumer_mapping LIMIT 5;", "tables_used": ["epdatalake.consumer_mapping"]}'
 
 
 local_llm_client = LocalLLMClient()
