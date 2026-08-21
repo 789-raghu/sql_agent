@@ -21,30 +21,38 @@ for candidate in \
     fi
 done
 
-if [ -z "$SERVER_BIN" ]; then
-    echo "Error: llama-server not found. Install llama.cpp or add it to PATH."
-    exit 1
-fi
-
 echo "Starting llama-server for Qwen2.5-Coder-7B-Instruct..."
 
 if [ -f "$CACHED_MODEL" ]; then
-    echo "Using cached model: $CACHED_MODEL"
-    ${SERVER_BIN} \
-        -m "$CACHED_MODEL" \
-        --host 127.0.0.1 \
-        --port 8080 \
-        -c 8192 \
-        -t $(nproc)
+    MODEL_TO_USE="$CACHED_MODEL"
 elif [ -f "$MODEL_FILE" ]; then
-    echo "Using local model: $MODEL_FILE"
+    MODEL_TO_USE="$MODEL_FILE"
+else
+    MODEL_TO_USE=""
+fi
+
+if [ -n "$SERVER_BIN" ] && [ -n "$MODEL_TO_USE" ]; then
+    echo "Using llama-server binary: $SERVER_BIN"
+    echo "Model: $MODEL_TO_USE"
     ${SERVER_BIN} \
-        -m "$MODEL_FILE" \
+        -m "$MODEL_TO_USE" \
         --host 127.0.0.1 \
         --port 8080 \
         -c 8192 \
         -t $(nproc)
-else
+elif python3 -c "import llama_cpp" 2>/dev/null; then
+    echo "llama-server binary not found. Falling back to llama-cpp-python server."
+    if [ -z "$MODEL_TO_USE" ]; then
+        MODEL_TO_USE="$CACHED_MODEL"
+    fi
+    echo "Model: $MODEL_TO_USE"
+    python3 -m llama_cpp.server \
+        --model "$MODEL_TO_USE" \
+        --host 127.0.0.1 \
+        --port 8080 \
+        --n_ctx 8192 \
+        --n_threads $(nproc)
+elif [ -n "$SERVER_BIN" ]; then
     echo "Downloading model from HuggingFace: $MODEL_HF"
     mkdir -p "$MODEL_DIR"
     ${SERVER_BIN} \
@@ -53,4 +61,10 @@ else
         --port 8080 \
         -c 8192 \
         -t $(nproc)
+else
+    echo "Error: Neither llama-server binary nor llama-cpp-python found."
+    echo "Install one of:"
+    echo "  Option A: sudo apt-get install -y unzip && wget ... (llama.cpp binary)"
+    echo "  Option B: pip install 'llama-cpp-python[server]'"
+    exit 1
 fi
