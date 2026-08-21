@@ -10,7 +10,8 @@ RULES:
 6. Date/Time filters: Prefer filtering on timestamp/date columns (e.g. ts, timestamp, date) using ClickHouse functions or explicit bounds.
 7. Joins: Use explicit JOIN ON conditions using provided relationships.
 8. Read-only: NEVER perform INSERT, UPDATE, DELETE, DROP, ALTER, TRUNCATE, or data modification.
-9. Output Format:
+9. Load Profile Joins: NEVER INNER JOIN both t_blp_sp (1-phase) and t_blp_tp (3-phase) together in the same query. Only join load profile tables if readings are specifically asked.
+10. Output Format:
 {
     "sql": "SELECT col1, col2 FROM table WHERE ...",
     "tables_used": ["table"]

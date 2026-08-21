@@ -7,6 +7,7 @@ BUSINESS_DEFINITIONS = """
   * lt_consumer_master (SCNO) -> JOIN smart_meters_install_m ON UKSCNO -> Branch on lt_consumer_master.PHASE:
     - 1-Phase -> JOIN epdatalake.t_blp_sp ON smart_meters_install_m.MTR_SNO = t_blp_sp.msn.
     - 3-Phase -> JOIN epdatalake.t_blp_tp ON smart_meters_install_m.MTR_SNO = t_blp_tp.msn.
+  * CRITICAL: NEVER INNER JOIN both t_blp_sp and t_blp_tp together in one query. A meter is either 1-Phase or 3-Phase, never both. If querying meter info or consumer MSN without asking for readings, do NOT join t_blp_sp or t_blp_tp.
 - Non-Smart LT Consumer Reading:
   * lt_consumer_master (SCNO) -> JOIN epdatalake.lt_meter_data ON lt_consumer_master.ID = lt_meter_data.CONS_NUMBER (PRESENT_READING, PREV_READING, PRESENT_MTRRDDATE).
 - DTR AMR Reading Routing:
