@@ -131,5 +131,13 @@ RELATIONSHIPS: List[Dict[str, str]] = [
         "to_column": "NAME",
         "type": "many-to-one",
         "join_condition": "epdatalake.lt_consumer_master.CATEGORY = epdatalake.lt_category_master.NAME"
+    },
+    {
+        "from_table": "epdatalake.ht_consumer_master",
+        "from_column": "MTR_NO",
+        "to_table": "epdatalake.ht_amr_data",
+        "to_column": "msn",
+        "type": "one-to-many",
+        "join_condition": "epdatalake.ht_consumer_master.MTR_NO = epdatalake.ht_amr_data.msn"
     }
 ]
