@@ -10,7 +10,10 @@ logger = structlog.get_logger()
 async def generate_answer_node(state: SQLAgentState) -> SQLAgentState:
     if state.execution_result is None:
         if state.execution_error:
-            state.final_answer = f"Query execution failed: {state.execution_error}"
+            if "timed out" in state.execution_error.lower():
+                state.final_answer = "The ClickHouse database query timed out. The table may be large or the network is slow. Try a more specific query with filters."
+            else:
+                state.final_answer = f"Query execution failed: {state.execution_error}"
         elif state.validation_errors:
             state.final_answer = f"I could not execute a safe query due to security policy violations: {'; '.join(state.validation_errors)}"
         else:
@@ -19,7 +22,7 @@ async def generate_answer_node(state: SQLAgentState) -> SQLAgentState:
         return state
 
     if len(state.execution_result) == 0:
-        state.final_answer = "No matching data was found for the requested criteria."
+        state.final_answer = "The query ran successfully but returned no matching rows. Try adjusting your filters or question."
         state.status = "success"
         return state
 

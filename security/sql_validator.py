@@ -96,9 +96,13 @@ class SQLValidator:
             return False, errors, clean_sql
 
         # 10. EXPLAIN Cost Guardrail Check
+        # Skip silently when ClickHouse is unreachable (e.g. VPN-only access) to avoid doubling latency.
         cost, explain_err = db_service.explain_query_cost(clean_sql)
         if explain_err:
-            logger.warning("Cost evaluation error", error=explain_err)
+            if any(x in explain_err.lower() for x in ["timed out", "timeout", "connection", "refused", "unreachable"]):
+                logger.info("EXPLAIN guardrail skipped - ClickHouse not reachable from this host", hint=explain_err[:80])
+            else:
+                logger.warning("Cost evaluation error", error=explain_err)
         elif cost > self.max_cost:
             errors.append(f"Estimated query cost ({cost:.2f}) exceeds maximum threshold ({self.max_cost:.2f}).")
             return False, errors, clean_sql
