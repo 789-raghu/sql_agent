@@ -12,14 +12,15 @@ class Settings(BaseSettings):
     MAX_CONCURRENT_LLM_REQUESTS: int = 1
 
     # Database Settings
-    DB_HOST: str = "172.31.4.121"
-    DB_USER: str = "script_client"
-    DB_PASSWORD: str = "JlR2KPVu.s/b5fTy"
-    DB_NAME: str = "elementsenergies"
-    DB_PORT: int = 5432
+    DB_HOST: str = "10.150.19.153"
+    DB_USER: str = "epdatalake"
+    DB_PASSWORD: str = "glummonkey60"
+    DB_NAME: str = "epdatalake"
+    DB_PORT: int = 8123
 
-    DATABASE_URL: str = "postgresql://script_client:JlR2KPVu.s%2Fb5fTy@172.31.4.121:5432/elementsenergies"
-    ADMIN_DATABASE_URL: str = "postgresql://script_client:JlR2KPVu.s%2Fb5fTy@172.31.4.121:5432/elementsenergies"
+    CLICKHOUSE_URL: str = "http://10.150.19.153:8123/"
+    DATABASE_URL: str = "http://epdatalake:glummonkey60@10.150.19.153:8123/epdatalake"
+    ADMIN_DATABASE_URL: str = "http://epdatalake:glummonkey60@10.150.19.153:8123/epdatalake"
     SQL_STATEMENT_TIMEOUT_MS: int = 5000
 
     # Query Limits

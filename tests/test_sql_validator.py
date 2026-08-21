@@ -3,7 +3,7 @@ from security.sql_validator import sql_validator
 
 
 def test_valid_select_query():
-    sql = "SELECT consumer_id, total_consumption FROM daily_summary WHERE date = CURRENT_DATE - INTERVAL '1 day';"
+    sql = "SELECT msn, vah_imp FROM epdatalake.ht_amr_data WHERE ts >= today();"
     is_valid, errors, clean_sql = sql_validator.validate(sql)
     assert is_valid is True
     assert len(errors) == 0

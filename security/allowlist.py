@@ -46,7 +46,9 @@ ALLOWED_TABLES: Set[str] = {
     "smart_meters_billdata",
     "epdatalake.oracle.smart_meters_billdata",
     "lt_category_master",
-    "epdatalake.lt_category_master"
+    "epdatalake.lt_category_master",
+    "ht_amr_data",
+    "epdatalake.ht_amr_data"
 }
 
 # Column Allowlist per Table / View
@@ -168,5 +170,7 @@ ALLOWED_COLUMNS: Dict[str, Set[str]] = {
     "smart_meters_billdata": {"mtr_sno", "bill_date", "bill_amount"},
     "epdatalake.oracle.smart_meters_billdata": {"mtr_sno", "bill_date", "bill_amount"},
     "lt_category_master": {"id", "name", "cat_code", "scdesc"},
-    "epdatalake.lt_category_master": {"id", "name", "cat_code", "scdesc"}
+    "epdatalake.lt_category_master": {"id", "name", "cat_code", "scdesc"},
+    "ht_amr_data": {"msn", "ts", "vah_imp", "kw_imp", "kvah_imp", "kwh_imp", "voltage", "current"},
+    "epdatalake.ht_amr_data": {"msn", "ts", "vah_imp", "kw_imp", "kvah_imp", "kwh_imp", "voltage", "current"}
 }

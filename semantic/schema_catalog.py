@@ -269,5 +269,16 @@ SCHEMA_CATALOG: Dict[str, Dict[str, Any]] = {
             "CAT_CODE": "Category classification code.",
             "SCDESC": "Sub-category description."
         }
+    },
+    "epdatalake.ht_amr_data": {
+        "description": "High Tension (HT) Automated Meter Reading (AMR) consumption load profile dataset.",
+        "columns": {
+            "msn": "Meter Serial Number (matches ht_consumer_master.MTR_NO).",
+            "ts": "Reading timestamp.",
+            "vah_imp": "Imported energy reading in kVAh.",
+            "kwh_imp": "Imported energy reading in kWh.",
+            "kw_imp": "Imported active power demand reading in kW.",
+            "kvah_imp": "Imported apparent energy reading in kVAh."
+        }
     }
 }

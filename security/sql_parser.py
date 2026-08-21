@@ -26,7 +26,7 @@ class SQLParsedInfo:
     def _parse(self):
         try:
             # Check for multiple statements
-            parsed_list = sqlglot.parse(self.raw_sql, read="postgres")
+            parsed_list = sqlglot.parse(self.raw_sql, read="clickhouse")
             self.statements_count = len(parsed_list)
 
             if self.statements_count != 1:

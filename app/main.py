@@ -1,5 +1,4 @@
 import httpx
-import psycopg
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Response, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,9 +20,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Self-Hosted PostgreSQL Natural Language SQL Agent",
+    title="Self-Hosted ClickHouse Natural Language SQL Agent",
     version="1.0.0",
-    description="Local Natural Language to PostgreSQL SQL Agent powered by Qwen2.5-Coder-7B GGUF and LangGraph.",
+    description="Local Natural Language to ClickHouse SQL Agent powered by Qwen2.5-Coder-7B GGUF and LangGraph.",
     lifespan=lifespan
 )
 
@@ -64,11 +63,21 @@ async def llm_health_check(response: Response):
 
 @app.get("/health/database")
 async def db_health_check(response: Response):
+    endpoint_url = f"http://{settings.DB_HOST}:{settings.DB_PORT}/"
     try:
-        with psycopg.connect(settings.DATABASE_URL) as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT 1;")
-                return {"status": "reachable", "database": "electricity"}
+        auth = (settings.DB_USER, settings.DB_PASSWORD)
+        async with httpx.AsyncClient(timeout=3.0) as client:
+            res = await client.post(
+                endpoint_url,
+                params={"database": settings.DB_NAME, "readonly": 1},
+                auth=auth,
+                content="SELECT 1 FORMAT JSON;"
+            )
+            if res.status_code == 200:
+                return {"status": "reachable", "database": settings.DB_NAME, "type": "clickhouse"}
+            else:
+                response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+                return {"status": "unreachable", "http_code": res.status_code, "error": res.text.strip()}
     except Exception as e:
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
         return {"status": "unreachable", "error": str(e)}
